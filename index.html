@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" 
+"http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title>Sierpinski triangle</title>
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.4.4/jquery.min.js"></script>
+    <style type="text/css">
+    body {
+        background-color: #000;
+        overflow: hidden;
+        margin: 0;
+    }
+    #output {
+        color: #0066CC;
+        font-family: Monospace;
+        font-size: 13px;
+        text-align: left;
+        left: 5px;
+        height: 60px;
+        position: absolute;
+        top: 5px;
+        width: 300px;
+    }
+    </style>
+</head>
+<body>
+    <canvas id="canvas"></canvas>
+
+    <div id="output">Click screen for Sierpinski triangle.<br>Triangles: <span id="tri">0</span></div>
+    <script type="text/javascript">
+        // Get the current computed width for browser window
+        var WIDTH = $(window).width();
+        var HEIGHT = $(window).height();
+        $('#canvas').attr({
+            width: WIDTH,
+            height: HEIGHT
+        });
+        var canvas = document.getElementById("canvas");        
+        var ctx = canvas.getContext("2d");
+        var antalTrianglar = 0;
+        
+        // Triangle object which consists of p1 - lower left,
+        // p2 - top and p3 - lower right corner.
+        // Starting point is set to lower left corner.
+        var Triangle = function(xStart, yStart, height) {
+            this.p1 = {xPos:xStart,yPos:yStart};
+            this.halfside = height/Math.tan(deg_to_rad(60));
+            this.p2 = {xPos:xStart+this.halfside,yPos:yStart-height};
+            this.p3 = {xPos:xStart+this.halfside*2,yPos:yStart};
+            this.height = height;
+        };
+        Triangle.prototype.draw = function() {
+            ctx.beginPath();  
+            ctx.moveTo(this.p1.xPos, this.p1.yPos);  
+            ctx.lineTo(this.p2.xPos, this.p2.yPos);
+            ctx.lineTo(this.p3.xPos, this.p3.yPos);  
+            ctx.lineTo(this.p1.xPos, this.p1.yPos);            
+            ctx.stroke();            
+        }
+        // Returns radians from given degrees.
+        function deg_to_rad(degrees) {
+            return degrees * Math.PI / 180;
+        }
+        // Returns a random RGB color code.
+        var getColor = function getColor() {
+            return Math.floor(Math.random()*256);
+        }        
+        
+        // Create first triangle!
+        var triangles = [new Triangle(20, HEIGHT-20, HEIGHT-40)];
+        ctx.strokeStyle = 'rgb('+getColor()+','+getColor()+','+getColor()+')';     
+        
+        $('#canvas').mousedown(function(event) {
+            var i = triangles.length;
+            // Draw all triangles
+            while(i--) {
+                triangles[i].draw();
+            }
+            antalTrianglar += triangles.length;
+            $('#tri').html(antalTrianglar);
+            // Change stroke color
+            ctx.strokeStyle = 'rgb('+getColor()+','+getColor()+','+getColor()+')';
+            // Create three smaller triangles inside each triangle
+            var smallerTriangles = [];
+            var newTriangle;                
+            var current;
+            i = triangles.length;
+            while(i--) {
+                current = triangles[i];
+                // Create lower left triangle first
+                newTriangle = new Triangle(current.p1.xPos, current.p1.yPos, current.height/2);
+                smallerTriangles.push(newTriangle);
+                // And take its top and right corner as starting points for next two triangles
+                smallerTriangles.push(new Triangle(newTriangle.p2.xPos, newTriangle.p2.yPos, current.height/2));
+                smallerTriangles.push(new Triangle(newTriangle.p3.xPos, newTriangle.p3.yPos, current.height/2));
+            }
+            triangles = [].concat(smallerTriangles);            
+        });
+    </script>
+</body>
+</html>
